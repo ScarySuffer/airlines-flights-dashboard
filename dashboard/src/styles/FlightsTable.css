@@ -1,0 +1,104 @@
+/* Container and input */
+div {
+  max-width: 100%;
+  margin: 20px auto;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+input[type="text"] {
+  display: block;
+  margin-bottom: 15px;
+  padding: 8px 12px;
+  width: 300px;
+  font-size: 1rem;
+  border: 1.5px solid #ccc;
+  border-radius: 4px;
+  transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+thead {
+  background-color: #007bff;
+  color: white;
+}
+
+th, td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+
+th:hover, th:focus {
+  background-color: #0056b3;
+  outline: none;
+}
+
+/* Highlight sorted column header */
+th.sorted-asc::after {
+  content: " ↑";
+  font-size: 0.8rem;
+}
+
+th.sorted-desc::after {
+  content: " ↓";
+  font-size: 0.8rem;
+}
+
+/* Row hover */
+tbody tr:hover {
+  background-color: #f1f7ff;
+}
+
+/* Responsive */
+@media screen and (max-width: 768px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  thead tr {
+    display: none;
+  }
+
+  tbody tr {
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+  }
+
+  tbody td {
+    padding: 10px 5px;
+    border: none;
+    position: relative;
+    padding-left: 50%;
+    white-space: pre-wrap;
+  }
+
+  tbody td::before {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    width: 45%;
+    white-space: nowrap;
+    font-weight: bold;
+    content: attr(data-label);
+  }
+}
