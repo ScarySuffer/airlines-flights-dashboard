@@ -1,48 +1,62 @@
-# dashboard/convert_csv_to_json.py (or whatever you name it inside dashboard/)
-
+# convert_csv_to_json.py
 import pandas as pd
 import json
 import os
 
 def parse_duration_to_minutes(duration_str):
-    """
-    Parses a duration string like "2h 30m" into total minutes.
-    Handles various formats including just hours or just minutes.
-    """
+    """Convert a duration like '2h 30m' or '45m' into total minutes."""
+    if not isinstance(duration_str, str):
+        return None  # Handle NaN or float types gracefully
+
+    duration_str = duration_str.strip().lower()
     total_minutes = 0
+
     if 'h' in duration_str:
         parts = duration_str.split('h')
-        hours = int(parts[0].strip())
-        total_minutes += hours * 60
-        if parts[1].strip() and 'm' in parts[1]: # Check if minutes part exists and contains 'm'
-            minutes_part = parts[1].strip()
-            # Handle cases like "1h" or "1h 30m"
-            if 'm' in minutes_part:
-                minutes_val = minutes_part.replace('m', '').strip()
-                if minutes_val: # Ensure there's a numeric value for minutes
-                    minutes = int(minutes_val)
-                    total_minutes += minutes
-    elif 'm' in duration_str: # Handles cases like "45m"
-        minutes = int(duration_str.strip('m ').strip())
-        total_minutes += minutes
+        try:
+            hours = int(parts[0].strip())
+            total_minutes += hours * 60
+        except ValueError:
+            pass
+        if len(parts) > 1 and 'm' in parts[1]:
+            minutes_part = parts[1].replace('m', '').strip()
+            if minutes_part.isdigit():
+                total_minutes += int(minutes_part)
+    elif 'm' in duration_str:
+        minutes_str = duration_str.replace('m', '').strip()
+        if minutes_str.isdigit():
+            total_minutes += int(minutes_str)
+
     return total_minutes
 
-# Paths relative to the 'dashboard' directory
-# The raw CSV is in 'airlines-flights-dashboard/data', so from 'dashboard' it's '../../data'
-csv_path = os.path.join('..', '..', 'data', 'airlines_flights_data.csv')
-json_output_path = os.path.join('public', 'data', 'flights.json') # This path remains correct from 'dashboard'
+
+# --- File paths ---
+csv_path = os.path.join('data', 'airlines_flights_data.csv')
+json_output_path = os.path.join('dashboard', 'public', 'data', 'flights.json')
+
+# --- Columns to keep ---
+columns_to_keep = [
+    'airline',
+    'source_city',
+    'destination_city',
+    'departure_time',
+    'arrival_time',
+    'duration',
+    'price'
+]
 
 try:
-    # Load CSV
     df = pd.read_csv(csv_path)
 
-    # Drop index column if exists (as per your original update)
+    # Drop the index column if present
     if 'index' in df.columns:
         df = df.drop(columns=['index'])
 
-    # --- NEW: Apply duration parsing ---
+    # Keep only relevant columns
+    df = df[columns_to_keep]
+
+    # Add parsed duration in minutes
     df['duration_minutes'] = df['duration'].apply(parse_duration_to_minutes)
-    # --- END NEW ---
 
     # Convert to JSON
     json_data = df.to_json(orient='records', indent=2)
@@ -54,9 +68,11 @@ try:
     with open(json_output_path, 'w') as f:
         f.write(json_data)
 
-    print(f"✅ CSV converted to JSON with 'duration_minutes' and saved to {json_output_path}")
+    print(f"✅ Successfully created JSON with duration_minutes at {json_output_path}")
 
 except FileNotFoundError:
-    print(f"❌ Error: CSV file not found at '{csv_path}'. Please ensure the path is correct from the 'dashboard' directory.")
+    print(f"❌ CSV not found at '{csv_path}' — check path.")
+except KeyError as e:
+    print(f"❌ Column error: {e}")
 except Exception as e:
-    print(f"❌ An error occurred: {e}")
+    print(f"❌ Unexpected error: {e}")
